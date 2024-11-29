@@ -1,7 +1,7 @@
 import axios from "axios";
 
 // const API_URL = "http://202.131.237.185:8051/api";
-const API_URL = "http://127.0.0.1:8000/api";
+const API_URL = "http://192.168.11.104:8000/api";
 
 export const fetchData = async (endpoint) => {
   const response = await axios.get(`${API_URL}/${endpoint}/`);
