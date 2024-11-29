@@ -3,7 +3,7 @@ import { fetchData, postData } from "../api";
 import Table from "../components/Table";
 
 const Orders = () => {
-  const API_URL = "http://192.168.11.104:8000/";
+  const API_URL = "http://202.131.237.185:8051/";
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
