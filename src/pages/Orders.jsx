@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { fetchData, postData, updateData, updateStatus } from "../api";
 import Table from "../components/Table";
+import ResponsiveCardLayout from "../components/ResponsiveTable";
 import Modal from "../components/Modal";
 import * as XLSX from "xlsx";
 import { useNavigate } from "react-router-dom";
@@ -474,8 +475,8 @@ const Orders = () => {
   );
 
   return (
-    <div className="min-h-screen p-6">
-      <div className="flex items-center justify-around max-w-md mx-auto">
+    <div className="min-h-screen p-2 lg:p-6 mt-10 lg:mt-0">
+      <div className="flex items-center justify-between max-w-md mx-auto">
         <h1 className="text-xl font-bold">Тавтай морил, {user.username}!</h1>
         <button
           onClick={onLogout}
@@ -494,39 +495,53 @@ const Orders = () => {
 
       <h1 className="text-2xl font-bold mb-4">Дуудлага бүртгэл</h1>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-blue-100 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-lg font-bold">Нийт Дуудлага</h2>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-6">
+        <div className="flex  justify-between h-10 items-center bg-blue-100 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
+          <h2 className="text-sm font-semibold lg:text-base lg:font-bold">
+            Нийт Дуудлага
+          </h2>
           <p>{orderStats.total}</p>
         </div>
-        <div className="bg-yellow-100 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-lg font-bold">Хүлээгдэж буй</h2>
+        <div className="flex  justify-between h-10 items-center bg-yellow-100 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
+          <h2 className="text-sm font-semibold lg:text-base lg:font-bold">
+            Хүлээгдэж буй
+          </h2>
           <p>{orderStats.pending}</p>
         </div>
-        <div className="bg-red-100 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-lg font-bold">Дуудлага хүлээн авсан</h2>
+        <div className="flex  justify-between h-10 items-center bg-red-100 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
+          <h2 className="text-sm font-semibold lg:text-base lg:font-bold">
+            Дуудлага хүлээн авсан
+          </h2>
           <p>{orderStats.on_call}</p>
         </div>
-        <div className="bg-green-100 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-lg font-bold">Шийдэгдсэн</h2>
+        <div className="flex  justify-between h-10 items-center bg-green-100 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
+          <h2 className="text-sm font-semibold lg:text-base lg:font-bold">
+            Шийдэгдсэн
+          </h2>
           <p>{orderStats.resolved}</p>
         </div>
-        <div className="bg-blue-200 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-lg font-bold">Засварын төв дээр авчирсан</h2>
+        <div className="flex  justify-between h-10 items-center bg-blue-200 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
+          <h2 className="text-sm font-semibold lg:text-base lg:font-bold">
+            Засварын төв дээр авчирсан
+          </h2>
           <p>{orderStats.on_service}</p>
         </div>
-        <div className="bg-gray-200 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-lg font-bold">Засах боломжгүй</h2>
+        <div className="flex  justify-between h-10 items-center bg-gray-200 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
+          <h2 className="text-sm font-semibold lg:text-base lg:font-bold">
+            Засах боломжгүй
+          </h2>
           <p>{orderStats.no_service}</p>
         </div>
-        <div className="bg-pink-200 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
-          <h2 className="text-lg font-bold">Цуцалсан</h2>
+        <div className="flex  justify-between h-10 items-center bg-pink-200 p-4 rounded shadow hover:shadow-lg transition-shadow duration-300">
+          <h2 className="text-sm font-semibold lg:text-base lg:font-bold">
+            Цуцалсан
+          </h2>
           <p>{orderStats.return}</p>
         </div>
       </div>
 
-      <div className="flex gap-5 flex-wrap">
-        <div className="mb-4">
+      <div className="flex flex-wrap gap-5">
+        <div className="mb-0 lg:mb-4 w-full sm:w-1/2 lg:w-1/4">
           <label
             className="block text-sm font-medium mb-1"
             htmlFor="statusFilter"
@@ -548,7 +563,7 @@ const Orders = () => {
           </select>
         </div>
 
-        <div className="mb-4">
+        <div className="mb-0 lg:mb-4 w-full sm:w-1/2 lg:w-1/4">
           <label className="block text-sm font-medium mb-1" htmlFor="startDate">
             Эхлэх огноо:
           </label>
@@ -561,7 +576,7 @@ const Orders = () => {
           />
         </div>
 
-        <div className="mb-4">
+        <div className="mb-0 lg:mb-4 w-full sm:w-1/2 lg:w-1/4">
           <label className="block text-sm font-medium mb-1" htmlFor="endDate">
             Дуусах огноо:
           </label>
@@ -574,7 +589,7 @@ const Orders = () => {
           />
         </div>
 
-        <div className="mb-4">
+        <div className="mb-0 lg:mb-4 w-full sm:w-1/2 lg:w-1/4">
           <label
             className="block text-sm font-medium mb-1"
             htmlFor="serviceTypeFilter"
@@ -597,24 +612,26 @@ const Orders = () => {
         </div>
       </div>
 
-      <div className="mb-4">
+      <div className="mb-2 lg:mb-4">
         <h2 className="text-lg font-bold">Нийт үнийн дүн:</h2>
         <p>{calculateTotalPrice()}₮</p>
       </div>
 
-      <button
-        className="bg-green-500 text-white px-4 py-2 rounded mb-6 hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105"
-        onClick={newOrderCreate}
-      >
-        Шинэ дуудлага бүртгэх
-      </button>
+      <div className="flex flex-wrap gap-4">
+        <button
+          className="bg-green-500 text-white px-4 py-2 rounded mb-0 lg:mb-6 hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105"
+          onClick={newOrderCreate}
+        >
+          Шинэ дуудлага бүртгэх
+        </button>
 
-      <button
-        className="bg-blue-500 text-white px-4 py-2 rounded mb-6 ml-4 hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105"
-        onClick={exportToExcel}
-      >
-        Excel файл руу экспортлох
-      </button>
+        <button
+          className="bg-blue-500 text-white px-4 py-2 rounded mb-2 lg:mb-6 ml-0 lg:ml-4 hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105"
+          onClick={exportToExcel}
+        >
+          Excel файл руу экспортлох
+        </button>
+      </div>
 
       {/* <Table
         headers={[
@@ -721,6 +738,7 @@ const Orders = () => {
       /> */}
 
       <Table columns={columns} data={filteredOrders} />
+      {/* <ResponsiveCardLayout columns={columns} data={filteredOrders} /> */}
 
       {isModalOpen && (
         <Modal

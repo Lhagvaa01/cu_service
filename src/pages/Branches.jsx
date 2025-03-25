@@ -100,7 +100,7 @@ const Branches = () => {
   };
 
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 mt-10 lg:mt-0">
       <h1 className="text-2xl font-bold mb-4">Салбарууд</h1>
 
       {/* Нийт тоо */}
@@ -134,24 +134,57 @@ const Branches = () => {
       </button>
 
       {/* Салбарын хүснэгт */}
-      <table className="min-w-full bg-white">
-        <thead>
-          <tr>
-            <th className="px-4 py-2">Салбарын нэр</th>
-            <th className="px-4 py-2">Утас</th>
-            <th className="px-4 py-2">Хаяг</th>
-            <th className="px-4 py-2">Үйлдэл</th>
-          </tr>
-        </thead>
-        <tbody>
-          {branches.map((branch) => (
-            <tr key={branch.id}>
-              <td className="border px-4 py-2">{branch.name}</td>
-              <td className="border px-4 py-2">{branch.phone}</td>
-              <td className="border px-4 py-2">{branch.address}</td>
-              <td className="border px-4 py-2 flex gap-2">
+      {/* <div className="overflow-x-auto">
+        <table className="min-w-full bg-white table-auto border-collapse">
+          <thead>
+            <tr className="bg-gray-200">
+              <th className="px-4 py-2 text-left">Салбарын нэр</th>
+              <th className="px-4 py-2 text-left">Утас</th>
+              <th className="px-4 py-2 text-left">Хаяг</th>
+              <th className="px-4 py-2 text-left">Үйлдэл</th>
+            </tr>
+          </thead>
+          <tbody>
+            {branches.map((branch) => (
+              <tr key={branch.id} className="border-b">
+                <td className="border px-4 py-2">{branch.name}</td>
+                <td className="border px-4 py-2">{branch.phone}</td>
+                <td className="border px-4 py-2">{branch.address}</td>
+                <td className="border px-4 py-2 flex flex-wrap gap-2">
+                  <button
+                    className="bg-blue-500 text-white px-3 py-1 rounded w-full sm:w-auto"
+                    onClick={() =>
+                      handleViewMap(branch.latitude, branch.longitude)
+                    }
+                  >
+                    Газрын зураг харах
+                  </button>
+                  <button
+                    className="bg-yellow-500 text-white px-3 py-1 rounded w-full sm:w-auto"
+                    onClick={() => {
+                      setEditingBranch(branch);
+                      setIsEditModalOpen(true);
+                    }}
+                  >
+                    Засах
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div> */}
+
+      <div className="flex flex-wrap gap-4">
+        {branches.map((branch) => (
+          <div key={branch.id} className="w-full sm:w-1/2 lg:w-1/4 lg:p-4">
+            <div className="bg-white p-4 shadow-md rounded-lg">
+              <h3 className="text-xl font-semibold">{branch.name}</h3>
+              <p className="text-gray-600">Утас: {branch.phone}</p>
+              <p className="text-gray-600">Хаяг: {branch.address}</p>
+              <div className="mt-4 flex gap-2">
                 <button
-                  className="bg-blue-500 text-white px-3 py-1 rounded"
+                  className="bg-blue-500 text-white px-4 py-2 rounded w-full sm:w-auto"
                   onClick={() =>
                     handleViewMap(branch.latitude, branch.longitude)
                   }
@@ -159,7 +192,7 @@ const Branches = () => {
                   Газрын зураг харах
                 </button>
                 <button
-                  className="bg-yellow-500 text-white px-3 py-1 rounded"
+                  className="bg-yellow-500 text-white px-4 py-2 rounded w-full sm:w-auto"
                   onClick={() => {
                     setEditingBranch(branch);
                     setIsEditModalOpen(true);
@@ -167,11 +200,11 @@ const Branches = () => {
                 >
                   Засах
                 </button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
 
       {/* Шинэ салбар нэмэх Modal */}
       {isModalOpen && (

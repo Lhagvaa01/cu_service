@@ -1,7 +1,7 @@
 import React, { useMemo } from "react";
 import { useTable, useFilters, useSortBy, usePagination } from "react-table";
 
-const ResponsiveCardLayout = ({ columns, data }) => {
+const ResponsiveTable = ({ columns, data }) => {
   const {
     getTableProps,
     getTableBodyProps,
@@ -30,32 +30,53 @@ const ResponsiveCardLayout = ({ columns, data }) => {
 
   return (
     <div className="w-full overflow-x-auto">
-      {/* Cards Layout */}
-      <div className="space-y-4">
-        {page.map((row) => {
-          prepareRow(row);
-          return (
-            <div
-              key={row.id}
-              {...row.getRowProps()}
-              className="border p-4 rounded-lg shadow-lg bg-white"
-            >
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {row.cells.map((cell) => (
-                  <div
-                    key={cell.column.id}
-                    className="flex flex-col items-start text-sm"
+      <div className="table-responsive">
+        <table
+          {...getTableProps()}
+          className="min-w-full divide-y divide-gray-200"
+        >
+          <thead className="bg-gray-50">
+            {headerGroups.map((headerGroup) => (
+              <tr {...headerGroup.getHeaderGroupProps()}>
+                {headerGroup.headers.map((column) => (
+                  <th
+                    {...column.getHeaderProps(column.getSortByToggleProps())}
+                    className="px-6 py-3 text-left text-xs font-medium uppercase tracking-wider"
                   >
-                    <span className="font-semibold text-gray-700">
-                      {cell.column.Header}:
+                    {column.render("Header")}
+                    <span>
+                      {column.isSorted
+                        ? column.isSortedDesc
+                          ? " 🔽"
+                          : " 🔼"
+                        : ""}
                     </span>
-                    <span className="text-gray-600">{cell.render("Cell")}</span>
-                  </div>
+                  </th>
                 ))}
-              </div>
-            </div>
-          );
-        })}
+              </tr>
+            ))}
+          </thead>
+          <tbody
+            {...getTableBodyProps()}
+            className="bg-white divide-y divide-gray-200"
+          >
+            {page.map((row) => {
+              prepareRow(row);
+              return (
+                <tr {...row.getRowProps()}>
+                  {row.cells.map((cell) => (
+                    <td
+                      {...cell.getCellProps()}
+                      className="px-6 py-4 whitespace-nowrap text-sm"
+                    >
+                      {cell.render("Cell")}
+                    </td>
+                  ))}
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
       </div>
 
       {/* Pagination */}
@@ -64,28 +85,28 @@ const ResponsiveCardLayout = ({ columns, data }) => {
           <button
             onClick={() => gotoPage(0)}
             disabled={!canPreviousPage}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
           >
             {"<<"}
           </button>
           <button
             onClick={() => previousPage()}
             disabled={!canPreviousPage}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
           >
             {"<"}
           </button>
           <button
             onClick={() => nextPage()}
             disabled={!canNextPage}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
           >
             {">"}
           </button>
           <button
             onClick={() => gotoPage(pageCount - 1)}
             disabled={!canNextPage}
-            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
           >
             {">>"}
           </button>
@@ -112,4 +133,4 @@ const ResponsiveCardLayout = ({ columns, data }) => {
   );
 };
 
-export default ResponsiveCardLayout;
+export default ResponsiveTable;
