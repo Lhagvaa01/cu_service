@@ -1,7 +1,7 @@
 import axios from "axios";
 
-// const API_URL = "http://202.131.237.185:8051/api";
 const API_URL = "http://202.131.237.185:8051/api";
+// const API_URL = "http://127.0.0.1:8000/api";
 
 export const fetchData = async (endpoint) => {
   const response = await axios.get(`${API_URL}/${endpoint}/`);
@@ -21,6 +21,26 @@ export const updateData = async (endpoint, id, data) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Update failed:", error.message);
+    throw error;
+  }
+};
+
+export const updateStatus = async (endpoint, data) => {
+  console.log(data);
+  try {
+    const response = await fetch(`${API_URL}${endpoint}`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: data,
     });
     if (!response.ok) {
       throw new Error(`HTTP error! Status: ${response.status}`);

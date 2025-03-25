@@ -12,11 +12,11 @@ const Sidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   const menuItems = [
-    {
-      name: "Удирдах самбар",
-      path: "/",
-      //   icon: <HomeModernIcon className="h-5 w-5" />,
-    },
+    // {
+    //   name: "Удирдах самбар",
+    //   path: "/dashboard",
+    //   //   icon: <HomeModernIcon className="h-5 w-5" />,
+    // },
     {
       name: "Захиалга",
       path: "/orders",
@@ -27,11 +27,11 @@ const Sidebar = () => {
       path: "/branches",
       //   icon: <UserCircleIcon className="h-5 w-5" />,
     },
-    {
-      name: "Тайлан",
-      path: "/reports",
-      //   icon: <ChartBarSquareIcon className="h-5 w-5" />,
-    },
+    // {
+    //   name: "Тайлан",
+    //   path: "/reports",
+    //   //   icon: <ChartBarSquareIcon className="h-5 w-5" />,
+    // },
   ];
 
   return (

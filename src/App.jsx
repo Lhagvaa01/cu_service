@@ -5,16 +5,51 @@ import Dashboard from "./pages/Dashboard";
 import Orders from "./pages/Orders";
 import Branches from "./pages/Branches";
 import Reports from "./pages/Reports";
+import Login from "./pages/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Router>
       <Layout>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
-          <Route path="/orders" element={<Orders />} />
-          <Route path="/branches" element={<Branches />} />
-          <Route path="/reports" element={<Reports />} />
+          {/* Логин хуудас */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/" element={<Login />} />
+
+          {/* Хамгаалагдсан хуудсууд */}
+          {/* <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            }
+          /> */}
+          <Route
+            path="/orders"
+            element={
+              <ProtectedRoute>
+                <Orders />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/branches"
+            element={
+              <ProtectedRoute>
+                <Branches />
+              </ProtectedRoute>
+            }
+          />
+          {/* <Route
+            path="/reports"
+            element={
+              <ProtectedRoute>
+                <Reports />
+              </ProtectedRoute>
+            }
+          /> */}
         </Routes>
       </Layout>
     </Router>

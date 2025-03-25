@@ -2,14 +2,15 @@ import React, { useEffect, useState } from "react";
 import { fetchData } from "../api";
 import Card from "../components/Card";
 import { postData } from "../api";
-// import { Bar } from "react-chartjs-2";
 import Chart from "../components/Chart";
+import { useNavigate } from "react-router-dom";
 
 const Dashboard = () => {
   const getCurrentDate = () => {
     const date = new Date();
     return date.toISOString().split("T")[0]; // Format to YYYY-MM-DD
   };
+
   const [reportData, setReportData] = useState([]);
   const [dateFrom, setDateFrom] = useState(getCurrentDate());
   const [dateTo, setDateTo] = useState(getCurrentDate());
@@ -69,95 +70,133 @@ const Dashboard = () => {
       alert("Тайлан татаж чадсангүй. Дахин оролдоно уу.");
     }
   };
-
+  const user = JSON.parse(sessionStorage.getItem("user"));
+  const navigate = useNavigate();
+  const onLogout = () => {
+    // Жишээ logout үйлдэл
+    sessionStorage.removeItem("user"); // Хэрэв токен хадгалсан бол устгана
+    // navigate("/login");
+    window.location.reload();
+  };
   return (
-    <div className="h-full p-6">
-      <h1 className="text-3xl font-bold mb-6">Удирдах самбар</h1>
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="h-screen p-6 bg-gray-50 overflow-auto">
+      <div className="flex items-center justify-around max-w-md mx-auto">
+        <h1 className="text-xl font-bold">Тавтай морил, {user.username}!</h1>
+        <button
+          onClick={onLogout}
+          className="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded"
+        >
+          Гарах
+        </button>
+      </div>
+
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Удирдах самбар</h1>
+
+      {/* Картууд */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <Card
-          title="Нийт захиалга"
+          title="Нийт дуудлага"
           value={data.totalOrders}
           bgColor="bg-blue-100"
+          textColor="text-blue-800"
         />
         <Card
           title="Идэвхтэй хэрэглэгчид"
           value={data.activeUsers}
           bgColor="bg-green-100"
+          textColor="text-green-800"
         />
         <Card
-          title="Өнөөдрийн орлого"
+          title="Нийт Дүн"
           value={`₮${data.todayRevenue.toFixed(2)}`}
           bgColor="bg-yellow-100"
+          textColor="text-yellow-800"
         />
       </div>
-      <div className="p-6">
-        <h1 className="text-2xl font-bold mb-4">Тайлан</h1>
-        <div className="mb-4 flex items-center">
-          <div className="mr-4">
-            <label
-              className="block text-sm font-medium mb-1"
-              htmlFor="date_from"
-            >
+
+      {/* Тайлан хэсэг */}
+      <div className="bg-white p-6 rounded-lg shadow-md">
+        <h1 className="text-2xl font-bold mb-4 text-gray-800">Тайлан</h1>
+
+        {/* Огнооны сонголт */}
+        <div className="mb-6 flex items-center space-x-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Эхлэх огноо:
             </label>
             <input
-              id="date_from"
               type="date"
-              className="border p-2 rounded"
+              className="border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={dateFrom}
               onChange={(e) => setDateFrom(e.target.value)}
             />
           </div>
-          <div className="mr-4">
-            <label className="block text-sm font-medium mb-1" htmlFor="date_to">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
               Дуусах огноо:
             </label>
             <input
-              id="date_to"
               type="date"
-              className="border p-2 rounded"
+              className="border p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               value={dateTo}
               onChange={(e) => setDateTo(e.target.value)}
             />
           </div>
           <button
-            className="bg-blue-500 text-white px-4 py-2 rounded mt-6"
+            className="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mt-6"
             onClick={fetchReport}
           >
             Тайлан харах
           </button>
         </div>
 
+        {/* График */}
         {chartData && (
-          <div className="mb-6">
-            <h2 className="text-xl font-bold mb-2">
+          <div className="mb-8">
+            <h2 className="text-xl font-bold mb-4 text-gray-800">
               Барааны борлуулалтын график
             </h2>
             <Chart data={chartData} title="Барааны борлуулалтын статистик" />
           </div>
         )}
 
-        <div className="mb-6">
-          <h2 className="text-xl font-bold mb-2">Засварын нийт үнийн дүн</h2>
-          <p className="text-gray-700">₮{repairsTotal.toLocaleString()}</p>
+        {/* Засварын нийт үнийн дүн */}
+        <div className="mb-8">
+          <h2 className="text-xl font-bold mb-2 text-gray-800">
+            Засварын нийт үнийн дүн
+          </h2>
+          <p className="text-gray-700 text-lg">
+            ₮{repairsTotal.toLocaleString()}
+          </p>
         </div>
 
-        <table className="min-w-full bg-white">
-          <thead>
-            <tr>
-              <th className="px-4 py-2">Барааны нэр</th>
-              <th className="px-4 py-2">Борлуулсан тоо хэмжээ</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reportData.map((report, index) => (
-              <tr key={index}>
-                <td className="border px-4 py-2">{report.product__itemName}</td>
-                <td className="border px-4 py-2">{report.total_sold}</td>
+        {/* Барааны борлуулалтын хүснэгт */}
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white rounded-lg shadow">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase">
+                  Барааны нэр
+                </th>
+                <th className="px-6 py-3 text-left text-sm font-medium text-gray-700 uppercase">
+                  Борлуулсан тоо хэмжээ
+                </th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {reportData.map((report, index) => (
+                <tr key={index} className="hover:bg-gray-50 transition-colors">
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {report.product__itemName}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-700">
+                    {report.total_sold}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

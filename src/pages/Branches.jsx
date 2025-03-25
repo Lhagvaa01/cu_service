@@ -37,7 +37,7 @@ const Branches = () => {
   const handleSearch = async (e) => {
     e.preventDefault();
     try {
-      const data = await fetchData(`branchesSearch=${searchTerm}`);
+      const data = await fetchData(`branchesSearch/?search=${searchTerm}`);
       setBranches(data);
     } catch (error) {
       console.error("Хайлт хийхэд алдаа гарлаа:", error.message);
@@ -55,6 +55,13 @@ const Branches = () => {
       setBranches((prev) => [...prev, response]);
       setTotalBranches((prev) => prev + 1);
       setIsModalOpen(false);
+      setNewBranch({
+        name: "",
+        phone: "",
+        address: "",
+        latitude: "",
+        longitude: "",
+      });
       alert("Шинэ салбар амжилттай нэмэгдлээ!");
     } catch (error) {
       console.error("Салбар нэмэхэд алдаа гарлаа:", error.message);
@@ -82,6 +89,7 @@ const Branches = () => {
       alert("Салбар засахад алдаа гарлаа.");
     }
   };
+
   const handleViewMap = (latitude, longitude) => {
     if (latitude && longitude) {
       const mapUrl = `https://www.google.com/maps?q=${latitude},${longitude}`;
@@ -92,7 +100,7 @@ const Branches = () => {
   };
 
   return (
-    <div className="h-screen p-6">
+    <div className="min-h-screen p-6">
       <h1 className="text-2xl font-bold mb-4">Салбарууд</h1>
 
       {/* Нийт тоо */}
@@ -164,6 +172,122 @@ const Branches = () => {
           ))}
         </tbody>
       </table>
+
+      {/* Шинэ салбар нэмэх Modal */}
+      {isModalOpen && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
+          <div className="bg-white p-6 rounded shadow-lg w-96">
+            <h2 className="text-xl font-bold mb-4">Шинэ салбар нэмэх</h2>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1" htmlFor="name">
+                Салбарын нэр:
+              </label>
+              <input
+                id="name"
+                type="text"
+                value={newBranch.name}
+                onChange={(e) =>
+                  setNewBranch((prev) => ({
+                    ...prev,
+                    name: e.target.value,
+                  }))
+                }
+                className="border p-2 rounded w-full"
+              />
+            </div>
+            <div className="mb-4">
+              <label className="block text-sm font-medium mb-1" htmlFor="phone">
+                Утас:
+              </label>
+              <input
+                id="phone"
+                type="text"
+                value={newBranch.phone}
+                onChange={(e) =>
+                  setNewBranch((prev) => ({
+                    ...prev,
+                    phone: e.target.value,
+                  }))
+                }
+                className="border p-2 rounded w-full"
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                className="block text-sm font-medium mb-1"
+                htmlFor="address"
+              >
+                Хаяг:
+              </label>
+              <textarea
+                id="address"
+                value={newBranch.address}
+                onChange={(e) =>
+                  setNewBranch((prev) => ({
+                    ...prev,
+                    address: e.target.value,
+                  }))
+                }
+                className="border p-2 rounded w-full"
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                className="block text-sm font-medium mb-1"
+                htmlFor="latitude"
+              >
+                Өргөрөг:
+              </label>
+              <input
+                id="latitude"
+                type="text"
+                value={newBranch.latitude}
+                onChange={(e) =>
+                  setNewBranch((prev) => ({
+                    ...prev,
+                    latitude: e.target.value,
+                  }))
+                }
+                className="border p-2 rounded w-full"
+              />
+            </div>
+            <div className="mb-4">
+              <label
+                className="block text-sm font-medium mb-1"
+                htmlFor="longitude"
+              >
+                Уртраг:
+              </label>
+              <input
+                id="longitude"
+                type="text"
+                value={newBranch.longitude}
+                onChange={(e) =>
+                  setNewBranch((prev) => ({
+                    ...prev,
+                    longitude: e.target.value,
+                  }))
+                }
+                className="border p-2 rounded w-full"
+              />
+            </div>
+            <div className="flex justify-end gap-4">
+              <button
+                className="bg-gray-300 px-4 py-2 rounded"
+                onClick={() => setIsModalOpen(false)}
+              >
+                Болих
+              </button>
+              <button
+                className="bg-green-500 text-white px-4 py-2 rounded"
+                onClick={handleAddBranch}
+              >
+                Хадгалах
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Засах Modal */}
       {isEditModalOpen && editingBranch && (
