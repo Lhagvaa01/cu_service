@@ -20,7 +20,7 @@ const Reports = () => {
       setReportData(data); // Серверээс ирсэн өгөгдлийг state-д хадгалах
     } catch (error) {
       console.error("Алдаа гарлаа:", error.message);
-      alert("Тайлан татаж чадсангүй. Дахин оролдоно уу.");
+      alert("Тайлан татаж чадсангүй. Дахин оролдоно уу...");
     }
   };
 
