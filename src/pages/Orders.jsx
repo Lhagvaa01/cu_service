@@ -18,7 +18,7 @@ import { useMemo } from "react";
 
 const Orders = () => {
   // const API_URL = "http://127.0.0.1:8000/";
-  const API_URL = "http://202.131.237.185:8051/";
+  const API_URL = "https://api.cu.kacc.mn/";
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");

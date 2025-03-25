@@ -13,7 +13,7 @@ const Login = () => {
 
     try {
       const response = await axios.post(
-        "http://202.131.237.185:8051/api/login/",
+        "https://api.cu.kacc.mn/api/login/",
         // "http://127.0.0.1:8000/api/login/",
         {
           email,
