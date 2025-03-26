@@ -6,6 +6,7 @@ import Orders from "./pages/Orders";
 import Branches from "./pages/Branches";
 import Reports from "./pages/Reports";
 import Login from "./pages/Login";
+import PasswordChangeForm from "./pages/PassChange";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
@@ -42,6 +43,16 @@ function App() {
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/passchange"
+            element={
+              <ProtectedRoute>
+                <PasswordChangeForm />
+              </ProtectedRoute>
+            }
+          />
+
           {/* <Route
             path="/reports"
             element={

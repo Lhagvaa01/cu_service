@@ -21,6 +21,11 @@ const Sidebar = ({ isSidebarOpen, toggleSidebar }) => {
       path: "/branches",
       icon: <UserCircleIcon className="h-5 w-5" />,
     },
+    {
+      name: "Нууц үг солих",
+      path: "/passchange",
+      icon: <UserCircleIcon className="h-5 w-5" />,
+    },
   ];
 
   return (

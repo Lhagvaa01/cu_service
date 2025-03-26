@@ -122,12 +122,35 @@ const Orders = () => {
     calculateTotalPrice();
   };
 
-  const [dateFilter, setDateFilter] = useState(
-    new Date().toISOString().split("T")[0]
-  );
-  const [endDateFilter, setEndDateFilter] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  // const [dateFilter, setDateFilter] = useState(
+  //   new Date().toISOString().split("T")[0]
+  // );
+  // const [endDateFilter, setEndDateFilter] = useState(
+  //   new Date().toISOString().split("T")[0]
+  // );
+
+  const getFirstDayOfMonth = () => {
+    const now = new Date();
+    const firstDay = new Date(now.getFullYear(), now.getMonth(), 1)
+      .toISOString()
+      .split("T")[0];
+
+    // console.log("📅 Сарын эхний өдөр:", firstDay); // Шалгах
+    return firstDay;
+  };
+
+  const getLastDayOfMonth = () => {
+    const now = new Date();
+    const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0)
+      .toISOString()
+      .split("T")[0];
+
+    // console.log("📅 Сарын сүүлийн өдөр:", lastDay); // Шалгах
+    return lastDay;
+  };
+
+  const [dateFilter, setDateFilter] = useState(getFirstDayOfMonth()); // Сарын эхний өдөр
+  const [endDateFilter, setEndDateFilter] = useState(getLastDayOfMonth()); // Сарын сүүлийн өдөр
 
   const handleDateFilterChange = (e, type) => {
     const value = e.target.value;
@@ -751,7 +774,7 @@ const Orders = () => {
         />
       )}
 
-      {isViewModalOpen && selectedOrder && (
+      {/* {isViewModalOpen && selectedOrder && (
         <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center">
           <div className="bg-white p-6 rounded shadow-lg w-3/4 max-w-3xl animate-fade-in">
             <h2 className="text-xl font-bold mb-4">Дуудлага бүртгэл Харах</h2>
@@ -842,6 +865,192 @@ const Orders = () => {
             <div className="flex justify-end mt-6">
               <button
                 className="bg-gray-300 px-4 py-2 rounded hover:bg-gray-400 transition duration-300 ease-in-out transform hover:scale-105"
+                onClick={() => setIsViewModalOpen(false)}
+              >
+                Хаах
+              </button>
+            </div>
+          </div>
+        </div>
+      )} */}
+
+      {isViewModalOpen && selectedOrder && (
+        <div className="fixed inset-0 bg-gray-800 bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-6xl max-h-[90vh] overflow-y-auto animate-fade-in">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
+              <h2 className="text-xl md:text-2xl font-bold">
+                Дуудлага бүртгэл Харах
+              </h2>
+              <button
+                onClick={() => setIsViewModalOpen(false)}
+                className="text-gray-500 hover:text-gray-700 focus:outline-none"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 md:p-6 space-y-4">
+              {/* Basic Information */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {user.permission == "K" && (
+                  <div>
+                    <p className="text-sm text-gray-600">ID</p>
+                    <p className="font-medium">{selectedOrder.id}</p>
+                  </div>
+                )}
+                <div>
+                  <p className="text-sm text-gray-600">
+                    Бүртгэл үүсгэсэн хэрэглэгч
+                  </p>
+                  <p className="font-medium">
+                    {selectedOrder.creted_user.TCUSERNAME}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Засварласан хэрэглэгч</p>
+                  <p className="font-medium">
+                    {selectedOrder.fixed_user?.TCUSERNAME || "-"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Салбар</p>
+                  <p className="font-medium">
+                    {selectedOrder.infoCUBranch.name}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Нийт үнэ</p>
+                  <p className="font-medium">
+                    ₮
+                    {typeof selectedOrder.totalPrice === "number"
+                      ? selectedOrder.totalPrice.toFixed(2)
+                      : parseFloat(selectedOrder.totalPrice || 0).toFixed(2)}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-600">Төлөв</p>
+                  <p className="font-medium">
+                    {ShowOrderStatusName(selectedOrder.status)}
+                  </p>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <p className="text-sm text-gray-600">Тайлбар</p>
+                <p className="font-medium">
+                  {selectedOrder.description || "-"}
+                </p>
+              </div>
+
+              {/* Service Types */}
+              <div>
+                <p className="text-sm text-gray-600">Засварын ангилал</p>
+                <p className="font-medium">
+                  {options
+                    .filter((opt) =>
+                      selectedOrder.service_types
+                        ? selectedOrder.service_types.includes(opt.value)
+                        : false
+                    )
+                    .map((opt) => opt.label)
+                    .join(", ") || "-"}
+                </p>
+              </div>
+
+              {/* Products Table */}
+              <div>
+                <h3 className="text-lg font-bold mb-3">Барааны мэдээлэл</h3>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-gray-200">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Зураг
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Нэр
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Тоо ширхэг
+                        </th>
+                        <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                          Үнэ
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white divide-y divide-gray-200">
+                      {selectedOrder.product_details.map((product, index) => (
+                        <tr key={index}>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            {product.image ? (
+                              <img
+                                src={`${API_URL}${product.image}`}
+                                alt={product.productName}
+                                className="h-12 w-12 md:h-16 md:w-16 object-cover rounded"
+                              />
+                            ) : (
+                              <div className="h-12 w-12 md:h-16 md:w-16 bg-gray-100 rounded flex items-center justify-center">
+                                <span className="text-xs text-gray-400">
+                                  Зураг алга
+                                </span>
+                              </div>
+                            )}
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">
+                              {product.productName}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              {product.quantity}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              ₮
+                              {(product.quantity * product.itemPrice).toFixed(
+                                2
+                              )}
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Order Date */}
+              <div>
+                <p className="text-sm text-gray-600">Захиалгын огноо</p>
+                <p className="font-medium">
+                  {new Date(selectedOrder.createdDate).toLocaleDateString(
+                    "mn-MN"
+                  )}
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-white p-4 border-t flex justify-end">
+              <button
+                className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 transition-colors duration-200"
                 onClick={() => setIsViewModalOpen(false)}
               >
                 Хаах
