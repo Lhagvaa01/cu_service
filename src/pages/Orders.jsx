@@ -16,10 +16,23 @@ import {
 } from "react-icons/fa";
 import { Listbox } from "@headlessui/react";
 import { useMemo } from "react";
+import jsPDF from "jspdf";
+import html2canvas from "html2canvas";
+
+import ImageModal from "../components/ImageModal";
 
 const Orders = () => {
   // const API_URL = "http://127.0.0.1:8000/";
   const API_URL = "https://api.cu.kacc.mn/";
+
+  const [showModal, setShowModal] = useState(false);
+  const [modalData, setModalData] = useState(null);
+
+  // const openModal = () => {
+  //   setModalData(exampleData);
+  //   setShowModal(true);
+  // };
+
   const [orders, setOrders] = useState([]);
   const [filteredOrders, setFilteredOrders] = useState([]);
   const [statusFilter, setStatusFilter] = useState("");
@@ -246,6 +259,71 @@ const Orders = () => {
     XLSX.writeFile(workbook, "Захиалгууд.xlsx");
   };
 
+  const formatDate = (date) => {
+    const d = new Date(date);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(
+      2,
+      "0"
+    )}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+
+  const exportImagesToPDF = async () => {
+    const pdf = new jsPDF("p", "mm", "a4");
+    let yPosition = 10;
+
+    const images = filteredOrders
+      .flatMap((order) => order.images)
+      .map((img) => ({
+        url: `https://api.cu.kacc.mn${img.image}`,
+        uploadedAt: img.uploaded_at,
+      }));
+
+    if (images.length === 0) {
+      alert("Ямар ч зураг олдсонгүй!");
+      return;
+    } else {
+      console.log("Зураг боловсруулах:", images);
+    }
+
+    // PDF дотор зургийн мэдээллийг оруулах
+    for (const image of images) {
+      const { url, uploadedAt } = image;
+      console.log("Зураг боловсруулж байна:", url);
+
+      // Огноог PDF дотор оруулах
+      const uploadedDate = new Date(uploadedAt);
+      const formattedDate = formatDate(uploadedDate);
+      pdf.setFont("Arial"); // 'helvetica' стандарт фонт
+      pdf.setFontSize(12); // Фонтын хэмжээг тохируулах
+      // Огноог PDF дээр байрлуулах
+      pdf.text(`${formattedDate}`, 15, yPosition);
+      yPosition += 10;
+
+      const imgWidth = 180;
+      const imgHeight = 180;
+
+      // Зургийн байрлал болон хуудас шилжүүлэх
+      if (yPosition + imgHeight + 10 > 297) {
+        // A4 хуудасны өндөр нь 297mm
+        pdf.addPage(); // Шинэ хуудас үүсгэх
+        yPosition = 10; // Шинэ хуудсанд эхлэх байрлал
+      }
+
+      // Зургийг нэмэх
+      pdf.addImage(url, "PNG", 15, yPosition, imgWidth, imgHeight);
+
+      yPosition += imgHeight + 10;
+    }
+
+    // Сонгогдсон огноог ашиглан файл нэрийг үүсгэх
+    const fileName = `Kaccmn_Засвар_${formatDate(dateFilter)}-${formatDate(
+      endDateFilter
+    )}.pdf`;
+
+    // PDF-ийг хадгалах
+    pdf.save(fileName);
+  };
+
   const fetchOrderDetails = async (orderId) => {
     try {
       const response = await fetchData(`histories/dtl/${orderId}`);
@@ -373,8 +451,463 @@ const Orders = () => {
     return selectedStatus && selectedStatus.role !== "A";
   };
 
+  const handleUploadImage = async (rowData) => {
+    const formData = new FormData();
+
+    // Оруулах зургуудаа сонгоно
+    const fileInput = document.createElement("input");
+    fileInput.type = "file";
+    fileInput.multiple = true;
+    fileInput.accept = "image/*";
+
+    fileInput.onchange = async (event) => {
+      const files = event.target.files;
+
+      // Файлуудыг `FormData` руу нэмэх
+      for (let i = 0; i < files.length; i++) {
+        formData.append("images", files[i]);
+      }
+
+      // PUT хүсэлт илгээх
+      try {
+        const response = await fetch(
+          `https://api.cu.kacc.mn/api/histories/update/${rowData.id}/`,
+          // `http://localhost:8000/api/histories/update/${rowData.id}/`,
+          {
+            method: "PUT",
+            body: formData,
+          }
+        );
+
+        const data = await response.json();
+        if (response.ok) {
+          alert("Зураг амжилттай нэмэгдлээ!");
+        } else {
+          console.error("Алдаа гарлаа:", data);
+        }
+      } catch (error) {
+        console.error("Сүлжээний алдаа:", error);
+      }
+    };
+
+    fileInput.click();
+  };
+
+  const handleViewImages = async (rowData) => {
+    try {
+      const response = await fetch(
+        // `http://localhost:8000/api/histories/${rowData.id}/`
+        `https://api.cu.kacc.mn/api/histories/${rowData.id}/`
+      );
+      const data = await response.json();
+
+      if (response.ok) {
+        // 🖼 Зургийн жагсаалтыг харуулах (Жишээ нь, modal)
+        // showImageModal(data);
+        showImageModal(data.images);
+      } else {
+        console.error("Алдаа:", data);
+      }
+    } catch (error) {
+      console.error("Сүлжээний алдаа:", error);
+    }
+  };
+
+  // Modal-д зураг харуулах функц
+  const showImageModal1 = (data) => {
+    if (new Date(data.createdDate) > new Date("2025-04-30")) {
+      const {
+        images,
+        product_details,
+        totalPrice,
+        createdDate,
+        infoCUBranch,
+        creted_user,
+        receivedName,
+        receivedPhone,
+        fixedDate,
+        fixed_user,
+      } = data;
+
+      const modal = document.createElement("div");
+      modal.classList.add(
+        "fixed",
+        "top-0",
+        "left-0",
+        "w-full",
+        "h-full",
+        "bg-white",
+        "bg-opacity-95",
+        "z-50",
+        "overflow-auto",
+        "p-10",
+        "flex",
+        "justify-center"
+      );
+
+      const modalContent = document.createElement("div");
+      modalContent.classList.add(
+        "bg-white",
+        "shadow-lg",
+        "rounded-lg",
+        "p-8",
+        "w-full",
+        "max-w-4xl"
+      );
+
+      // 🧾 Header Section (Branch, Date, User)
+      modalContent.innerHTML = `
+        <h2 class="text-xl font-bold mb-4">Бараа хүлээлгэн өгсөн падаан</h2>
+        <p><strong>Салбар:</strong> ${infoCUBranch.name}</p>
+        <p><strong>Үүсгэсэн хэрэглэгч:</strong> ${creted_user.TCUSERNAME}</p>
+        <p><strong>Огноо:</strong> ${new Date(createdDate).toLocaleString()}</p>
+        <p><strong>Засварласан огноо:</strong> ${new Date(
+          fixedDate
+        ).toLocaleString()}</p>
+        <hr class="my-4" />
+      `;
+
+      // 📦 Product Table
+      const table = document.createElement("table");
+      table.classList.add("w-full", "border", "mb-4");
+      table.innerHTML = `
+        <thead>
+          <tr class="bg-gray-200">
+            <th class="border px-4 py-2 text-left">Бараа</th>
+            <th class="border px-4 py-2 text-right">Тоо</th>
+            <th class="border px-4 py-2 text-right">Үнэ</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${product_details
+            .map(
+              (p) => `
+            <tr>
+              <td class="border px-4 py-2">${p.productName}</td>
+              <td class="border px-4 py-2 text-right">${p.quantity}</td>
+              <td class="border px-4 py-2 text-right">${p.itemPrice.toLocaleString()}</td>
+            </tr>
+          `
+            )
+            .join("")}
+        </tbody>
+      `;
+      modalContent.appendChild(table);
+
+      // 💵 Total price
+      const total = document.createElement("p");
+      total.classList.add("text-right", "font-bold", "text-lg");
+      total.textContent = `Нийт үнэ: ${parseFloat(
+        totalPrice
+      ).toLocaleString()}₮`;
+      modalContent.appendChild(total);
+
+      const fixedContainer = document.createElement("div");
+      fixedContainer.classList.add("relative", "mb-4");
+
+      // 🖼 Зураг
+      const fixedImage = document.createElement("img");
+      fixedImage.src = "/kaccService.png";
+      fixedImage.alt = "Засварласан хэрэглэгч";
+      fixedImage.classList.add("absolute", "-top-6", "right-50", "w-3xs");
+
+      // 📝 Текст
+      const fixedText = document.createElement("p");
+      fixedText.classList.add("text-left", "font-bold", "text-lg", "pl-10"); // left padding for image
+      fixedText.textContent = `Засварласан хэрэглэгч: ${fixed_user.TCUSERNAME.toLocaleString()}`;
+
+      // Элементүүдийг холбоно
+      fixedContainer.appendChild(fixedImage);
+      fixedContainer.appendChild(fixedText);
+      modalContent.appendChild(fixedContainer);
+
+      const receiveName = document.createElement("p");
+      receiveName.classList.add("text-left", "font-bold", "text-lg");
+      receiveName.textContent = `Хүлээн авсан хэрэглэгч нэр/утас: ${
+        receivedName.toLocaleString() + ", " + receivedPhone.toLocaleString()
+      }`;
+      modalContent.appendChild(receiveName);
+
+      // 🖼 Images Section
+      if (images.length > 0) {
+        const imageGrid = document.createElement("div");
+        imageGrid.classList.add(
+          "grid",
+          "grid-cols-2",
+          "md:grid-cols-3",
+          "gap-4",
+          "mt-6"
+        );
+
+        images.forEach((image) => {
+          const container = document.createElement("div");
+          container.classList.add(
+            "relative",
+            "group",
+            "border",
+            "rounded",
+            "overflow-hidden"
+          );
+
+          const img = document.createElement("img");
+          img.src = `https://api.cu.kacc.mn${image.image}`;
+          img.classList.add(
+            "w-full",
+            "h-auto",
+            "object-contain",
+            "cursor-pointer"
+          );
+          img.onclick = () => openImageInFullscreen(img.src);
+
+          const downloadBtn = document.createElement("a");
+          downloadBtn.href = img.src;
+          downloadBtn.download = `image-${image.id}`;
+          downloadBtn.textContent = "Татах";
+          downloadBtn.classList.add(
+            "absolute",
+            "bottom-2",
+            "left-2",
+            "bg-white",
+            "text-black",
+            "text-xs",
+            "px-2",
+            "py-1",
+            "rounded",
+            "opacity-0",
+            "group-hover:opacity-100"
+          );
+
+          container.appendChild(img);
+          container.appendChild(downloadBtn);
+          imageGrid.appendChild(container);
+        });
+
+        modalContent.appendChild(imageGrid);
+      }
+
+      const saveAsImage = () => {
+        html2canvas(modalContent).then((canvas) => {
+          const link = document.createElement("a");
+          link.download = "padaan.png";
+          link.href = canvas.toDataURL("image/png");
+          link.click();
+        });
+      };
+
+      const downloadButton = document.createElement("button");
+      downloadButton.textContent = "Зураг хэлбэрээр хадгалах";
+      downloadButton.classList.add(
+        "mt-6",
+        "bg-blue-600",
+        "text-white",
+        "px-4",
+        "py-2",
+        "rounded",
+        "hover:bg-blue-700"
+      );
+      downloadButton.onclick = saveAsImage;
+      modalContent.appendChild(downloadButton);
+
+      // ❌ Close on click outside
+      modal.onclick = () => document.body.removeChild(modal);
+      modal.appendChild(modalContent);
+      document.body.appendChild(modal);
+    } else {
+      const imageModal = document.createElement("div");
+      imageModal.classList.add(
+        "fixed",
+        "top-0",
+        "left-0",
+        "w-full",
+        "h-full",
+        // "bg-black",
+        // "bg-opacity-75",
+        "border-2",
+        "flex",
+        "justify-center",
+        "items-center",
+        "overflow-auto",
+        "p-5"
+      );
+
+      data.images.forEach((image) => {
+        const imgContainer = document.createElement("div");
+        imgContainer.classList.add(
+          "relative",
+          "group",
+          "max-w-xs",
+          "w-full",
+          "mx-4",
+          "rounded-lg",
+          "overflow-hidden"
+        );
+
+        const img = document.createElement("img");
+        img.src = "https://api.cu.kacc.mn" + image.image;
+        // img.src = "http://127.0.0.1:8000" + image.image;
+        img.classList.add(
+          "w-full",
+          "h-auto",
+          "object-cover",
+          "transition-transform",
+          "duration-300",
+          "transform",
+          "group-hover:scale-110"
+        );
+
+        // Татаж авах товчийг нэмэх
+        const downloadBtn = document.createElement("a");
+        downloadBtn.href = img.src;
+        downloadBtn.download = `image-${image.id}`;
+        downloadBtn.classList.add(
+          "absolute",
+          "bottom-2",
+          "left-2",
+          "bg-white",
+          "text-black",
+          "text-sm",
+          "px-3",
+          "py-1",
+          "rounded-full",
+          "opacity-0",
+          "group-hover:opacity-100",
+          "transition-opacity",
+          "duration-300"
+        );
+        downloadBtn.textContent = "Татаж авах";
+
+        // Зураг дээр дарж томруулах
+        img.onclick = () => openImageInFullscreen(img.src);
+
+        imgContainer.appendChild(img);
+        imgContainer.appendChild(downloadBtn);
+        imageModal.appendChild(imgContainer);
+      });
+
+      // Модал дээр дарж хаах
+      imageModal.onclick = () => document.body.removeChild(imageModal);
+
+      document.body.appendChild(imageModal);
+    }
+  };
+
+  // const saveAsImage = () => {
+  //   html2canvas(modalContent).then((canvas) => {
+  //     const link = document.createElement("a");
+  //     link.download = "padaan.png";
+  //     link.href = canvas.toDataURL("image/png");
+  //     link.click();
+  //   });
+  // };
+
+  const showImageModal = (images) => {
+    const imageModal = document.createElement("div");
+    imageModal.classList.add(
+      "fixed",
+      "top-0",
+      "left-0",
+      "w-full",
+      "h-full",
+      // "bg-black",
+      // "bg-opacity-75",
+      "border-2",
+      "flex",
+      "justify-center",
+      "items-center",
+      "overflow-auto",
+      "p-5"
+    );
+
+    images.forEach((image) => {
+      const imgContainer = document.createElement("div");
+      imgContainer.classList.add(
+        "relative",
+        "group",
+        "max-w-xs",
+        "w-full",
+        "mx-4",
+        "rounded-lg",
+        "overflow-hidden"
+      );
+
+      const img = document.createElement("img");
+      img.src = "https://api.cu.kacc.mn" + image.image;
+      // img.src = "http://127.0.0.1:8000" + image.image;
+      img.classList.add(
+        "w-full",
+        "h-auto",
+        "object-cover",
+        "transition-transform",
+        "duration-300",
+        "transform",
+        "group-hover:scale-110"
+      );
+
+      // Татаж авах товчийг нэмэх
+      const downloadBtn = document.createElement("a");
+      downloadBtn.href = img.src;
+      downloadBtn.download = `image-${image.id}`;
+      downloadBtn.classList.add(
+        "absolute",
+        "bottom-2",
+        "left-2",
+        "bg-white",
+        "text-black",
+        "text-sm",
+        "px-3",
+        "py-1",
+        "rounded-full",
+        "opacity-0",
+        "group-hover:opacity-100",
+        "transition-opacity",
+        "duration-300"
+      );
+      downloadBtn.textContent = "Татаж авах";
+
+      // Зураг дээр дарж томруулах
+      img.onclick = () => openImageInFullscreen(img.src);
+
+      imgContainer.appendChild(img);
+      imgContainer.appendChild(downloadBtn);
+      imageModal.appendChild(imgContainer);
+    });
+
+    // Модал дээр дарж хаах
+    imageModal.onclick = () => document.body.removeChild(imageModal);
+
+    document.body.appendChild(imageModal);
+  };
+
+  // Зураг томруулах функц
+  const openImageInFullscreen = (src) => {
+    const fullscreenImage = document.createElement("div");
+    fullscreenImage.classList.add(
+      "fixed",
+      "top-0",
+      "left-0",
+      "w-full",
+      "h-full",
+      "bg-black",
+      "bg-opacity-90",
+      "flex",
+      "justify-center",
+      "items-center"
+    );
+
+    const img = document.createElement("img");
+    img.src = src;
+    img.classList.add("max-w-full", "max-h-full", "object-contain");
+
+    // Зураг томруулах хэсэг дээр дарж хаах
+    fullscreenImage.onclick = () => document.body.removeChild(fullscreenImage);
+
+    fullscreenImage.appendChild(img);
+    document.body.appendChild(fullscreenImage);
+  };
+
   const columns = useMemo(
     () => [
+      { Header: "Падааны №", accessor: "id" },
       { Header: "Үүсгэсэн огноо", accessor: "createdDate" },
       { Header: "Бүртгэл үүсгэсэн", accessor: "creted_user.TCUSERNAME" },
       { Header: "Засварласан хэрэглэгч", accessor: "fixed_user.TCUSERNAME" },
@@ -490,6 +1023,103 @@ const Orders = () => {
             >
               Засах
             </button>
+
+            {user.permission === "K" ? (
+              <>
+                <button
+                  className="bg-purple-500 text-white px-3 py-1 rounded hover:bg-purple-600 transition duration-300 ease-in-out transform hover:scale-105"
+                  onClick={() => handleUploadImage(row.original)}
+                >
+                  Падаан зураг оруулах
+                </button>
+                {/* {row.original.images && row.original.images.length > 0 ? (
+                  // <button
+                  //   className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105"
+                  //   onClick={() => handleViewImages(row.original)}
+                  // >
+                  //   Падаан харах
+                  // </button>
+                  <button onClick={openModal}>Падаан харах</button>
+                  {showModal && (
+                    <ImageModal 
+                      data={modalData} 
+                      onClose={() => setShowModal(false)} 
+                    />
+                  )}
+                ) : (
+                  <div></div> // Хоосон байвал юу ч харагдахгүй
+                )} */}
+                {row.original.images?.length > 0 && (
+                  <>
+                    {new Date(row.original.createdDate) >
+                    new Date("2025-04-30") ? (
+                      <button
+                        className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105"
+                        onClick={() => {
+                          setModalData(row.original);
+                          setShowModal(true);
+                        }}
+                      >
+                        Падаан харах
+                      </button>
+                    ) : (
+                      <button
+                        className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105"
+                        onClick={() => handleViewImages(row.original)}
+                      >
+                        Падаан харах
+                      </button>
+                    )}
+
+                    {showModal && modalData?.id === row.original.id && (
+                      <ImageModal
+                        data={modalData}
+                        onClose={() => setShowModal(false)}
+                      />
+                    )}
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                {row.original.images?.length > 0 && (
+                  <>
+                    {new Date(row.original.createdDate) >
+                    new Date("2025-04-30") ? (
+                      <button
+                        className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105"
+                        onClick={() => {
+                          setModalData(row.original);
+                          setShowModal(true);
+                        }}
+                      >
+                        Падаан харах
+                      </button>
+                    ) : (
+                      <button
+                        className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105"
+                        onClick={() => handleViewImages(row.original)}
+                      >
+                        Падаан харах
+                      </button>
+                    )}
+
+                    {showModal && modalData?.id === row.original.id && (
+                      <ImageModal
+                        data={modalData}
+                        onClose={() => setShowModal(false)}
+                      />
+                    )}
+                  </>
+                )}
+              </>
+              // <button
+              //   className="bg-gray-500 text-white px-3 py-1 rounded hover:bg-gray-600 transition duration-300 ease-in-out transform hover:scale-105"
+              //   onClick={() => handleViewImages(row.original)}
+              // >
+              //   Зураг харах
+              // </button>
+            )}
           </div>
         ),
       },
@@ -654,111 +1284,14 @@ const Orders = () => {
         >
           Excel файл руу экспортлох
         </button>
+
+        <button
+          className="bg-red-500 text-white px-4 py-2 rounded mb-2 lg:mb-6 ml-0 lg:ml-4 hover:bg-red-600 transition duration-300 ease-in-out transform hover:scale-105"
+          onClick={exportImagesToPDF}
+        >
+          Зургуудыг PDF болгох
+        </button>
       </div>
-
-      {/* <Table
-        headers={[
-          "Үүсгэсэн огноо",
-          "Бүртгэл үүсгэсэн",
-          "Засварласан хэрэглэгч",
-          "Салбар",
-          "Засварын төрөл",
-          "Нийт үнэ",
-          "Төлөв",
-          "Үйлдэл",
-        ]}
-        rows={filteredOrders.map((order) => [
-          OrderDate(order.createdDate),
-          order.creted_user?.TCUSERNAME || "",
-          order.fixed_user?.TCUSERNAME || "",
-          order.infoCUBranch.name,
-          <div>
-            {infoServiceType
-              .filter((service) => order.service_types.includes(service.pk))
-              .map((service) => (
-                <span key={service.pk}>
-                  {service.name}
-                  <br />{" "}
-                </span>
-              ))}
-          </div>,
-          calculatePrice(order) + "₮",
-          <div className="relative">
-            <Listbox
-              value={order.status}
-              onChange={(newStatus) => {
-                if (
-                  user.permission === "K" ||
-                  (user.permission === "C" &&
-                    !isKSelectedNonAStatus(order) &&
-                    infoStatus.find((s) => s.pk === newStatus)?.role === "A")
-                ) {
-                  handleStatusChange(order.id, newStatus);
-                }
-              }}
-            >
-              <Listbox.Button
-                className="border p-2 rounded w-full flex items-center gap-2"
-                style={{ backgroundColor: statusStyles[order.status]?.bg }}
-              >
-                {statusStyles[order.status]?.icon}
-                {getStatusName(order.status)}
-              </Listbox.Button>
-              <Listbox.Options className="absolute mt-1 rounded shadow-md z-10">
-                {infoStatus.map((status) => {
-                  const isDisabled = !(
-                    user.permission === "K" ||
-                    (user.permission === "C" &&
-                      !isKSelectedNonAStatus(order) &&
-                      status.role === "A")
-                  );
-
-                  return (
-                    <Listbox.Option
-                      key={status.pk}
-                      value={status.pk}
-                      disabled={isDisabled}
-                      className={`cursor-pointer flex items-center gap-2 p-2 ${
-                        isDisabled
-                          ? "opacity-50 cursor-not-allowed"
-                          : "hover:bg-gray-100"
-                      }`}
-                      style={{ backgroundColor: statusStyles[status.pk]?.bg }}
-                    >
-                      {statusStyles[status.pk]?.icon} {status.name}
-                    </Listbox.Option>
-                  );
-                })}
-              </Listbox.Options>
-            </Listbox>
-          </div>,
-          <div className="flex gap-2">
-            <button
-              className="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-600 transition duration-300 ease-in-out transform hover:scale-105"
-              onClick={() => handleRowView(order)}
-            >
-              Харах
-            </button>
-            <button
-              className={`bg-green-500 text-white px-3 py-1 rounded ${
-                user.permission === "C" && isKSelectedNonAStatus(order)
-                  ? "opacity-50 cursor-not-allowed"
-                  : "hover:bg-green-600 transition duration-300 ease-in-out transform hover:scale-105"
-              }`}
-              onClick={() => {
-                if (
-                  !(user.permission === "C" && isKSelectedNonAStatus(order))
-                ) {
-                  handleRowEdit(order);
-                }
-              }}
-              disabled={user.permission === "C" && isKSelectedNonAStatus(order)}
-            >
-              Засах
-            </button>
-          </div>,
-        ])}
-      /> */}
 
       <Table columns={columns} data={filteredOrders} />
       {/* <ResponsiveCardLayout columns={columns} data={filteredOrders} /> */}
@@ -908,7 +1441,7 @@ const Orders = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {user.permission == "K" && (
                   <div>
-                    <p className="text-sm text-gray-600">ID</p>
+                    <p className="text-sm text-gray-600">Падааны №:</p>
                     <p className="font-medium">{selectedOrder.id}</p>
                   </div>
                 )}
